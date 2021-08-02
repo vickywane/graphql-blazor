@@ -1,16 +1,49 @@
 @page "/counter"
+@using GraphQL.Client.Serializer.Newtonsoft
+@using GraphQL
+
+@using GraphQL.Client.Http
+@using System.Text.Json
+@using graphql_blazor.Data
+
+@inject  GraphqlService GraphQLOps;
 
 <h1>Counter</h1>
 
-<p>Current count: @currentCount</p>
+<p>Current count here now: @currentCount</p>
+@* <p>Current name: @name</p> *@
+<p>
+    DATA HERE: 
+</p>
+
+@if (isLoaded)
+{
+    <ul>
+        @* @foreach (var item in _fetchedData) *@
+        @* { *@
+        @*     <li>  @item.name </li> *@
+        @* } *@
+    </ul>
+}
+
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<button > Send Test Request </button>
 
 @code {
-    private int currentCount = 0;
+    int currentCount;
+    bool isLoaded;
+
+    private GraphqlService[] countries;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // countries = await GraphQLOps.FetchCountries();
+    }
 
     private void IncrementCount()
     {
         currentCount++;
     }
+
 }
