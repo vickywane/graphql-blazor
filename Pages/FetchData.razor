@@ -1,46 +1,113 @@
-﻿@page "/fetchdata"
+﻿@page "/fetchdata";
 
-@using graphql_blazor.Data
-@inject WeatherForecastService ForecastService
+@using graphql_blazor.Data;
+@using System.ComponentModel.DataAnnotations
+@inject WeatherForecastService ForecastService;
+@inject GraphqlService GraphqlOps;
 
-<h1>Weather forecast</h1>
+<section id="create-country" >
+    <div>
+        <h4> Insert A New Country </h4>
+        <hr/>
 
-<p>This component demonstrates fetching data from a service.</p>
+        <form>
+            <div class="input-container" style="display: flex; flex-direction: column;" >
+                <label> Country Name </label>
+                <input @bind="countryName" placeholder="Country Name"/>
+            </div>
+            
+            <br />
+            <div style="display: flex; flex-direction: column;"  class="input-container">
+                <label> Country Code </label>
+                <input @bind="countryCode" placeholder="Country Name"/>
+            </div>
+            <br />
+             
+            <button
+                @onclick="HandleCreateCountry"
+            @onclick:preventDefault="true"
+                > Submit country details </button>
+        </form>
+    </div>
+</section>
 
-@if (forecasts == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
+<br/>
+<br/>
+
+<section>
+    <h4> Available Countries </h4>
+
+    <div>
+        @if (countriesData == null)
+        {
+            <p>
+                <em>Loading...</em>
+            </p>
+        }
+        else
+        {
+            <table class="table">
+                <thead>
                 <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
+                    <th>Country Name</th>
+                    <th>Country Code </th>
+                    <th> Date Inserted </th>
+                    <th>Country States </th>
                 </tr>
-            }
-        </tbody>
-    </table>
-}
+                </thead>
+                <tbody>
+                @foreach (var item in countriesData.Data.countries)
+                {
+                    <tr>
+                        <td>@item.name</td>
+                        <td>@item.code</td>
+                        <td format-value="yyyy-MM-dd" >@item.dateInserted</td>
+                        
+                        @if (item.states != null)
+                        {
+                            @foreach (var state in item.states)
+                            {
+                                <td> @state.name </td>
+                            }
+                        }
+                      
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+</section>
 
 @code {
-    private WeatherForecast[] forecasts;
+    bool _isLoading;
 
+    [Required]
+    private string countryName { get; set; }
+    
+    [Required]
+    private string countryCode { get; set; }
+
+    private GraphQL.GraphQLResponse<graphql_blazor.Data.GraphqlData> countriesData;
+
+    private async Task FetchCountryData()
+    {
+        countriesData = await GraphqlOps.FetchCountries();
+    } 
+    
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+        await FetchCountryData();
+    }
+
+    async void HandleCreateCountry()
+    {
+        _isLoading = true;
+
+        await GraphqlOps.InsertCountry(countryName, countryCode);
+        await FetchCountryData();
+
+        _isLoading = false;
+        this.StateHasChanged();
     }
 }
